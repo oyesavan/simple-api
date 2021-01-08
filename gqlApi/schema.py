@@ -13,6 +13,7 @@ class Query(graphene.ObjectType):
     hero = graphene.Field(HeroType, id= graphene.Int())
     def resolve_heroes(self, info, **kwargs):
         return Hero.objects.all()
+
     def resolve_hero(self, info, **kwargs):
         cur = kwargs.get('id')
         return Hero.objects.get(pk=cur)
@@ -23,7 +24,6 @@ class HeroInput(graphene.InputObjectType):
     name = graphene.String()
     gender = graphene.String()
     alias = graphene.String()
-
 
 
 class CreateHero(graphene.Mutation):
@@ -65,7 +65,26 @@ class UpdateHero(graphene.Mutation):
             return UpdateHero(ok=ok, hero=hero_instance)
         return UpdateHero(ok=ok, hero=None)
 
+class DeleteHero(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    hero = graphene.Field(HeroType)
+
+    @staticmethod
+    def mutate(root, info, id):
+        ok = False
+        try:
+            if Hero.objects.get(id=id).delete():
+        #hero_instance.delete()
+                ok = True
+                return DeleteHero(ok=ok)
+        except:
+            return DeleteHero(ok=ok)
+
 
 class Mutation(graphene.ObjectType):
     create_Hero = CreateHero.Field()
     update_Hero = UpdateHero.Field()
+    delete_Hero = DeleteHero.Field()
