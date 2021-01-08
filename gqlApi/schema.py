@@ -1,5 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
+
 from .models import Hero
 
 
@@ -41,6 +42,30 @@ class CreateHero(graphene.Mutation):
         hero_instance.save()
         return CreateHero(ok=ok, hero=hero_instance)
 
+class UpdateHero(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required = True)
+        input = HeroInput(required = True)
+
+    ok = graphene.Boolean()
+    hero = graphene.Field(HeroType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        ok = False
+
+        hero_instance = Hero.objects.get(pk=id)
+        if hero_instance:
+            ok = True
+            if input.name:
+                hero_instance.name = input.name
+            if input.alias:
+                hero_instance.alias = input.alias
+            hero_instance.save()
+            return UpdateHero(ok=ok, hero=hero_instance)
+        return UpdateHero(ok=ok, hero=None)
+
 
 class Mutation(graphene.ObjectType):
     create_Hero = CreateHero.Field()
+    update_Hero = UpdateHero.Field()
