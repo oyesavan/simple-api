@@ -15,3 +15,32 @@ class Query(graphene.ObjectType):
     def resolve_hero(self, info, **kwargs):
         cur = kwargs.get('id')
         return Hero.objects.get(pk=cur)
+
+
+class HeroInput(graphene.InputObjectType):
+    id = graphene.Int()
+    name = graphene.String()
+    gender = graphene.String()
+    alias = graphene.String()
+
+
+
+class CreateHero(graphene.Mutation):
+    class Arguments:
+        input = HeroInput(required=True)
+
+    ok = graphene.Boolean()
+    hero = graphene.Field(HeroType)
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        ok = True
+        hero_instance = Hero(name=input.name,
+                             alias=input.alias,
+                             gender=input.gender)
+        hero_instance.save()
+        return CreateHero(ok=ok, hero=hero_instance)
+
+
+class Mutation(graphene.ObjectType):
+    create_Hero = CreateHero.Field()
